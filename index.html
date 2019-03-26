@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>在线流式语音识别web版</title>
+<meta charset="utf-8">
+<style type="text/css">
+body{margin: 0px;padding: 0px;}
+.logo{text-align: center;}
+.logo img{width: 450px;}
+.content{width: 100%;height:500px;background: #0052d9;}
+.content_box{display: inline-block; float: left;margin:5px auto;width: 100%;color: #fff;margin-top:0px;}
+.btn_box{width: 100%;padding: 30px 0px;text-align: center;}
+.listing{padding: 8px 50px;background: #fff;margin: 5px 10px 0px 0px;border-radius: 3px;text-decoration: none;color: #000;}
+.listing:hover{background: #eee;}
+.Stop_listing{padding: 8px 50px;border:1px solid #eee; margin:5px 0px 0px 10px;border-radius: 3px;text-decoration: none;color: #fff;}
+.Stop_listing:hover{background: #0255de;}
+.content_text{color: #eee;text-align: center;padding: 5px;line-height: 30px;}
+.speechbox{width:60%;margin: 0 auto;background: #eaf5ff;min-height:200px;margin-top:10px;border-radius:5px;padding: 30px;font-size: 14px;}
+.speechtext{line-height: 20px;font-size: 16px;border-top:2px solid #ddd;padding: 5px 0px;color: #666;}
+h1{padding: 0px;margin: 0px;text-align: center;}
+.footer{width: 100%;height: 50px;text-align: center; color: #888;bottom: 2px;margin-top:150px;}
+#log{width: 100%;margin-top:-10px;text-align: center;font-size: 12px;color: #ddd;}
+#log p{color: #fff;font-size: 15px;margin-top:-5px;}
+</style>
+
+</head>
+<body>
+<div class="content">
+    <div class="logo"><img src="voice_logo.gif"></div>
+    <div class="content_box"><h1>在线流式语音识别web版</h1></div>
+    <div class="content_text">点击"聆听"便可边说话边识别哦</div>
+    <div class="btn_box">
+        <a class="listing" onclick="startRecording(this);" href="javascript:;">聆听</a>
+        <a class="Stop_listing" onclick="stopRecording(this);" href="javascript:;" disabled>停止</a>
+    </div>
+    <div id="log"></div>
+</div>
+
+<div class="speechbox"><h3>识别内容：</h3>
+<div class="speechtext"><div id="speechtext"></div></div></div>
+<div class="footer">Copyright © 2018 huxinchun.com All Rights Reserved.</div>
+
+
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="recordmp3.js"></script>
+    <script>
+        function __log(e, data) {
+            log.innerHTML += "\n" + e + " " + (data || '');
+        }
+
+        var audio_context;
+        var recorder;
+
+        function startUserMedia(stream) {
+            var input = audio_context.createMediaStreamSource(stream);
+            //__log('已创建媒体流.');
+            //__log("输入采样率 " + input.context.sampleRate);
+
+            // Feedback!
+            //input.connect(audio_context.destination);
+           // __log('Input connected to audio context destination.');
+
+            recorder = new Recorder(input, {
+                numChannels: 1
+            });
+            __log('初始化录音机，点击‘聆听’1秒钟后开始录音识别');
+        }
+
+        //开始录音
+        function startRecording(button) {
+            recorder && recorder.record();
+            button.disabled = true;
+            button.nextElementSibling.disabled = false;
+            //__log('录音中...');
+            document.getElementById("log").innerHTML="<p>录音中...</p>";
+        }
+
+        //停止录音
+        function stopRecording(button) {
+            recorder && recorder.stop();
+            button.disabled = true;
+            button.previousElementSibling.disabled = false;
+            //__log('已停止录制.');
+            document.getElementById("log").innerHTML="<p>已停止...</p>";
+
+            // create WAV download link using audio data blob
+            createDownloadLink();
+
+            recorder.clear();
+        }
+
+        //创建下载链接
+        function createDownloadLink() {
+            recorder && recorder.exportWAV(function (blob) {
+                /*var url = URL.createObjectURL(blob);
+                var li = document.createElement('li');
+                var au = document.createElement('audio');
+                var hf = document.createElement('a');
+          
+                au.controls = true;
+                au.src = url;
+                hf.href = url;
+                hf.download = new Date().toISOString() + '.wav';
+                hf.innerHTML = hf.download;
+                li.appendChild(au);
+                li.appendChild(hf);
+                recordingslist.appendChild(li);*/
+            });
+        }
+
+        //音频文件下载
+        window.onload = function () {
+            try {
+                // webkit shim
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                navigator.getUserMedia = (navigator.getUserMedia ||
+                    navigator.webkitGetUserMedia ||
+                    navigator.mozGetUserMedia ||
+                    navigator.msGetUserMedia);
+                window.URL = window.URL || window.webkitURL;
+                audio_context = new AudioContext;
+                //__log('音频上下文设置.');
+                //__log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+            } catch (e) {
+                alert('此浏览器不支持Web音频!');
+            }
+
+            navigator.getUserMedia({ audio: true }, startUserMedia, function (e) {
+                __log('无现场音频输入: ' + e);
+            });
+        };
+    </script>
+
+
+</body>
+</html>
+
+
+   
